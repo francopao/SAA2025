@@ -1,0 +1,6 @@
+streamlit
+pandas
+numpy
+openpyxl
+Pillow
+xlrd==1.2.0
