@@ -194,6 +194,37 @@ if uploaded_file is not None:
                 'text-align': 'center'
             })
         )
+        
+        # ======= ESTADÍSTICAS =======
+    if not df_filtered.empty:
+        import pandas as pd
+        valores_precio = pd.to_numeric(df_filtered.iloc[:,1], errors='coerce')
+        valores_monto = pd.to_numeric(df_filtered.iloc[:,2], errors='coerce')
+        
+        stats_dict = {
+            "Métrica": ["Mínimo TC", "Máximo TC", "Promedio", "Volatilidad", "Monto total"],
+            "Valor": [round(valores_precio.min(),4),
+                      round(valores_precio.max(),4),
+                      round(valores_precio.mean(),4),
+                      round(valores_precio.std(ddof=0)*1000,4),
+                      int(valores_monto.sum())]
+        }
+        
+        df_stats = pd.DataFrame(stats_dict)
+        
+        st.subheader("Estadísticas del Intervalo Seleccionado")
+    
+        # Estilo corporativo: header azul (#0099CC) y letras blancas
+        st.dataframe(
+            df_stats.style
+            .set_table_styles([
+                {'selector': 'thead th', 
+                 'props': [('background-color', '#0099CC'), ('color', 'white'), ('font-weight','bold'), ('text-align','center')]}
+            ])
+            .set_properties(**{'text-align': 'center', 'font-family':'Arial', 'font-size':'12px'})
+        )
+
+
 
         # ======= BOTÓN PARA GENERAR EXCEL =======
         if st.button("Generar Reporte Excel"):
