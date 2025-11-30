@@ -140,7 +140,7 @@ def generar_reporte_streamlit(wb_in, hora_inicio="09:00", hora_fin="13:30"):
     return temp_file
 
 # ==== UI ====
-st.subheader("Generar el reporte")
+st.subheader("Carga del archivo Excel")
 
 uploaded_file = st.file_uploader(
     "Archivo Excel", type=["xlsm", "xlsx", "xls"]
@@ -164,16 +164,49 @@ if uploaded_file is not None:
         st.error(f"Error al leer el archivo: {e}")
         wb_in = None
 
-    if wb_in is not None and st.button("Generar Reporte"):
-        ruta_reporte = generar_reporte_streamlit(wb_in, hora_inicio.strftime("%H:%M"), hora_fin.strftime("%H:%M"))
-        st.success("Reporte generado correctamente ✅")
-        with open(ruta_reporte, "rb") as f:
-            st.download_button(
-                label="Descargar Reporte",
-                data=f,
-                file_name=os.path.basename(ruta_reporte),
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    if wb_in is not None:
+        # ======= VISTA PREVIA ESTILIZADA =======
+        ws_data = wb_in["Data"]
+        data_rows = list(ws_data.values)
+        df = pd.DataFrame(data_rows[1:], columns=data_rows[0])
+        
+        # Filtrar por hora
+        t_ini = hora_inicio
+        t_fin = hora_fin
+        df["Hora"] = df.iloc[:,0].apply(parse_hora_to_time)
+        df_filtered = df[df["Hora"].between(t_ini, t_fin)]
+
+        st.subheader("Reporte de Tipo de Cambio")
+        st.markdown(
+            "<p style='color:#1F4E79; font-weight:bold;'>Franco Olivares - Strategic Asset Allocation</p>",
+            unsafe_allow_html=True
+        )
+
+        st.dataframe(
+            df_filtered.style
+            .format("{:.4f}", subset=df_filtered.columns[1:2])   # precios
+            .format("{:,.0f}", subset=df_filtered.columns[2:3]) # montos
+            .highlight_max(color='#D6EAF8', subset=df_filtered.columns[1:2])
+            .highlight_min(color='#FADBD8', subset=df_filtered.columns[1:2])
+            .set_properties(**{
+                'font-family': 'Arial',
+                'font-size': '12px',
+                'text-align': 'center'
+            })
+        )
+
+        # ======= BOTÓN PARA GENERAR EXCEL =======
+        if st.button("Generar Reporte Excel"):
+            ruta_reporte = generar_reporte_streamlit(
+                wb_in,
+                hora_inicio.strftime("%H:%M"),
+                hora_fin.strftime("%H:%M")
             )
-
-
-
+            st.success("Reporte generado correctamente")
+            with open(ruta_reporte, "rb") as f:
+                st.download_button(
+                    label="Descargar Reporte",
+                    data=f,
+                    file_name=os.path.basename(ruta_reporte),
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
