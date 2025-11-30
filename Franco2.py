@@ -140,7 +140,7 @@ def generar_reporte_streamlit(wb_in, hora_inicio="09:00", hora_fin="13:30"):
     return temp_file
 
 # ==== UI ====
-st.subheader("Sube tu archivo Excel para generar el reporte")
+st.subheader("Generar el reporte")
 
 uploaded_file = st.file_uploader(
     "Archivo Excel", type=["xlsm", "xlsx", "xls"]
@@ -174,5 +174,6 @@ if uploaded_file is not None:
                 file_name=os.path.basename(ruta_reporte),
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
 
 
